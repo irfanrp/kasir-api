@@ -372,6 +372,23 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// HealthCheck godoc
+// @Summary Health check
+// @Description Health check
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /health [get]
+func HealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(Response{
+		Status:  "success",
+		Message: "API is healthy",
+	})
+}
+
 // @title Kasir API
 // @version 1.0
 // @host localhost:8080
@@ -421,14 +438,7 @@ func main() {
 	})
 
 	// check api health
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(Response{
-			Status:  "success",
-			Message: "API is healthy",
-		})
-	})
+	http.HandleFunc("/health", HealthCheck)
 
 	// swagger documentation
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
