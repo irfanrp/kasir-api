@@ -400,6 +400,11 @@ func main() {
 		GetProductByID(w, r)
 	})
 
+	//update category by id
+	http.HandleFunc("PUT /api/categories/", func(w http.ResponseWriter, r *http.Request) {
+		UpdateCategory(w, r)
+	})
+
 	//update product by id
 	http.HandleFunc("PUT /api/products/", func(w http.ResponseWriter, r *http.Request) {
 		UpdateProduct(w, r)
