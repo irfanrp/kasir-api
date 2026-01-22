@@ -389,62 +389,84 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// corsMiddleware adds CORS headers to all responses
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // @title Kasir API
 // @version 1.0
 // @host localhost:8080
 // @BasePath /
 func main() {
+	// Create a mux with CORS middleware
+	mux := http.NewServeMux()
 
 	//get all categories
-	http.HandleFunc("GET /api/categories", GetAllCategories)
+	mux.HandleFunc("GET /api/categories", GetAllCategories)
 
 	// get all products
-	http.HandleFunc("GET /api/products", GetAllProducts)
+	mux.HandleFunc("GET /api/products", GetAllProducts)
 
 	// create new category
-	http.HandleFunc("POST /api/categories", CreateCategory)
+	mux.HandleFunc("POST /api/categories", CreateCategory)
 
 	// create new product
-	http.HandleFunc("POST /api/products", CreateProduct)
+	mux.HandleFunc("POST /api/products", CreateProduct)
 
 	// get category by id
-	http.HandleFunc("GET /api/categories/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /api/categories/", func(w http.ResponseWriter, r *http.Request) {
 		GetCategoryByID(w, r)
 	})
 
 	//get all products by id
-	http.HandleFunc("GET /api/products/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /api/products/", func(w http.ResponseWriter, r *http.Request) {
 		GetProductByID(w, r)
 	})
 
 	//update category by id
-	http.HandleFunc("PUT /api/categories/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("PUT /api/categories/", func(w http.ResponseWriter, r *http.Request) {
 		UpdateCategory(w, r)
 	})
 
 	//update product by id
-	http.HandleFunc("PUT /api/products/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("PUT /api/products/", func(w http.ResponseWriter, r *http.Request) {
 		UpdateProduct(w, r)
 	})
 
 	//delete product by id
-	http.HandleFunc("DELETE /api/products/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("DELETE /api/products/", func(w http.ResponseWriter, r *http.Request) {
 		DeleteProduct(w, r)
 	})
 
 	//delete category by id
-	http.HandleFunc("DELETE /api/categories/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("DELETE /api/categories/", func(w http.ResponseWriter, r *http.Request) {
 		DeleteCategory(w, r)
 	})
 
 	// check api health
-	http.HandleFunc("/health", HealthCheck)
+	mux.HandleFunc("/health", HealthCheck)
 
 	// swagger documentation
-	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+
+	// Apply CORS middleware to all routes
+	handler := corsMiddleware(mux)
 
 	fmt.Println("Server is running...")
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", handler)
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}
