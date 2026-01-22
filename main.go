@@ -408,7 +408,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 // @title Kasir API
 // @version 1.0
-// @host localhost:8080
 // @BasePath /
 func main() {
 	// Create a mux with CORS middleware
