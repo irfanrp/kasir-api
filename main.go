@@ -374,7 +374,7 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 // @title Kasir API
 // @version 1.0
-// @host localhost:8081
+// @host localhost:8080
 // @BasePath /
 func main() {
 
@@ -434,7 +434,7 @@ func main() {
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	fmt.Println("Server is running...")
-	err := http.ListenAndServe(":8081", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}
