@@ -4,10 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
+	"github.com/spf13/viper"
+
+	"kasir-api-irfan/database"
 	_ "kasir-api-irfan/docs"
+	"kasir-api-irfan/handlers"
+	"kasir-api-irfan/repositories"
+	"kasir-api-irfan/services"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -18,29 +25,21 @@ type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-type Product struct {
-	ID    int    `json:"id:"`
-	Name  string `json:"name"`
-	Price int    `json:"price"`
-	Stock int    `json:"stock"`
-}
-
 type Categories struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-var products = []Product{
-	{ID: 1, Name: "Laptop", Price: 1000, Stock: 10},
-	{ID: 2, Name: "Smartphone", Price: 500, Stock: 20},
-	{ID: 3, Name: "Tablet", Price: 300, Stock: 15},
-}
-
 var categories = []Categories{
 	{ID: 1, Name: "Elektronik", Description: "Perangkat gadget, komputer, dan aksesori elektronik lainnya"},
 	{ID: 2, Name: "Pakaian", Description: "Berbagai jenis kain, baju, celana, dan aksesoris fashion"},
 	{ID: 3, Name: "Makanan", Description: "Produk konsumsi siap saji maupun bahan makanan"},
+}
+
+type Config struct {
+	Port   string `mapstructure:"PORT"`
+	DBConn string `mapstructure:"DB_CONN"`
 }
 
 // GetAllCategories godoc
@@ -58,62 +57,6 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 		Status:  "success",
 		Message: "All categories retrieved successfully",
 		Data:    categories,
-	})
-}
-
-// GetAllProducts godoc
-// @Summary Get all products
-// @Description Mengambil semua data produk
-// @Tags products
-// @Accept json
-// @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Router /api/products [get]
-func GetAllProducts(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(Response{
-		Status:  "success",
-		Message: "All products retrieved successfully",
-		Data:    products,
-	})
-}
-
-// GetProductByID godoc
-// @Summary Get product by ID
-// @Description Mengambil produk berdasarkan ID
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param id path int true "Product ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 404 {object} map[string]string
-// @Router /api/products/{id} [get]
-func GetProductByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/products/")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
-		return
-	}
-
-	for _, product := range products {
-		if product.ID == id {
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(Response{
-				Status:  "success",
-				Message: "Product retrieved successfully",
-				Data:    product,
-			})
-			return
-		}
-	}
-
-	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(Response{
-		Status:  "error",
-		Message: "Product not found",
 	})
 }
 
@@ -181,35 +124,6 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 		Status:  "success",
 		Message: "Category created successfully",
 		Data:    categories,
-	})
-}
-
-// CreateProduct godoc
-// @Summary Create new product
-// @Description Menambahkan produk baru
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param product body Product true "Product Data"
-// @Success 201 {object} map[string]interface{}
-// @Router /api/products [post]
-func CreateProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	var newProduct Product
-	err := json.NewDecoder(r.Body).Decode(&newProduct)
-	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
-		return
-	}
-
-	newProduct.ID = len(products) + 1
-	products = append(products, newProduct)
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(Response{
-		Status:  "success",
-		Message: "product created successfully",
-		Data:    products,
 	})
 }
 
@@ -292,86 +206,6 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UpdateProduct godoc
-// @Summary Update product
-// @Description Update produk berdasarkan ID
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param id path int true "Product ID"
-// @Param product body Product true "Product Data"
-// @Success 200 {object} map[string]interface{}
-// @Router /api/products/{id} [put]
-func UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/products/")
-	id, _ := strconv.Atoi(idStr)
-	var UpdateProduct Product
-	err := json.NewDecoder(r.Body).Decode(&UpdateProduct)
-	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
-		return
-	}
-
-	for i, product := range products {
-		if product.ID == id {
-			// Update product data
-			products[i].Name = UpdateProduct.Name
-			products[i].Price = UpdateProduct.Price
-			products[i].Stock = UpdateProduct.Stock
-
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(Response{
-				Status:  "success",
-				Message: "Product updated successfully",
-				Data:    products[i],
-			})
-			return
-		}
-	}
-
-}
-
-// DeleteProduct godoc
-// @Summary Delete product
-// @Description Menghapus produk berdasarkan ID
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param id path int true "Product ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 404 {object} map[string]string
-// @Router /api/products/{id} [delete]
-func DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/products/")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
-		return
-	}
-
-	for i, product := range products {
-		if product.ID == id {
-			// Remove product from slice
-			products = append(products[:i], products[i+1:]...)
-
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(Response{
-				Status:  "success",
-				Message: "Product deleted successfully",
-			})
-			return
-		}
-	}
-
-	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(Response{
-		Status:  "error",
-		Message: "Product not found",
-	})
-}
-
 // HealthCheck godoc
 // @Summary Health check
 // @Description Health check
@@ -410,44 +244,38 @@ func corsMiddleware(next http.Handler) http.Handler {
 // @version 1.0
 // @BasePath /
 func main() {
+	// Load configuration
+	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	if _, err := os.Stat(".env"); err == nil {
+		viper.SetConfigFile(".env")
+		_ = viper.ReadInConfig()
+	}
+
+	config := Config{
+		Port:   viper.GetString("PORT"),
+		DBConn: viper.GetString("DB_CONN"),
+	}
+
 	// Create a mux with CORS middleware
 	mux := http.NewServeMux()
 
 	//get all categories
 	mux.HandleFunc("GET /api/categories", GetAllCategories)
 
-	// get all products
-	mux.HandleFunc("GET /api/products", GetAllProducts)
-
 	// create new category
 	mux.HandleFunc("POST /api/categories", CreateCategory)
-
-	// create new product
-	mux.HandleFunc("POST /api/products", CreateProduct)
 
 	// get category by id
 	mux.HandleFunc("GET /api/categories/", func(w http.ResponseWriter, r *http.Request) {
 		GetCategoryByID(w, r)
 	})
 
-	//get all products by id
-	mux.HandleFunc("GET /api/products/", func(w http.ResponseWriter, r *http.Request) {
-		GetProductByID(w, r)
-	})
-
 	//update category by id
 	mux.HandleFunc("PUT /api/categories/", func(w http.ResponseWriter, r *http.Request) {
 		UpdateCategory(w, r)
-	})
-
-	//update product by id
-	mux.HandleFunc("PUT /api/products/", func(w http.ResponseWriter, r *http.Request) {
-		UpdateProduct(w, r)
-	})
-
-	//delete product by id
-	mux.HandleFunc("DELETE /api/products/", func(w http.ResponseWriter, r *http.Request) {
-		DeleteProduct(w, r)
 	})
 
 	//delete category by id
@@ -464,9 +292,32 @@ func main() {
 	// Apply CORS middleware to all routes
 	handler := corsMiddleware(mux)
 
-	fmt.Println("Server is running...")
-	err := http.ListenAndServe(":8080", handler)
+	// Initialize Database
+	db, err := database.InitDB(config.DBConn)
 	if err != nil {
-		fmt.Println("Error starting server:", err)
+		fmt.Printf("Gagal inisialisasi database: %v\n", err)
+	}
+
+	// Setup routes
+	var productHandler *handlers.ProductHandler
+	if db != nil {
+		productRepo := repositories.NewProductRepository(db)
+		productService := services.NewProductService(productRepo)
+		productHandler = handlers.NewProductHandler(productService)
+
+		// Injeksi database routes ke mux
+		mux.HandleFunc("GET /api/v2/products", productHandler.HandleProducts)
+		mux.HandleFunc("POST /api/v2/products", productHandler.HandleProducts)
+		mux.HandleFunc("GET /api/v2/products/", productHandler.HandleProductByID)
+		mux.HandleFunc("PUT /api/v2/products/", productHandler.HandleProductByID)
+		mux.HandleFunc("DELETE /api/v2/products/", productHandler.HandleProductByID)
+	}
+
+	addr := "0.0.0.0:" + config.Port
+	fmt.Println("Server running di", addr)
+
+	err = http.ListenAndServe(addr, handler)
+	if err != nil {
+		fmt.Println("gagal running server", err)
 	}
 }
