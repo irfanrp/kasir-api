@@ -490,7 +490,13 @@ const docTemplate = `{
         "models.Product": {
             "type": "object",
             "properties": {
-                "id:": {
+                "category_id": {
+                    "type": "integer"
+                },
+                "category_name": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "integer"
                 },
                 "name": {
