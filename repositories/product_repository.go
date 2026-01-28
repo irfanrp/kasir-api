@@ -16,7 +16,8 @@ func NewProductRepository(db *sql.DB) ProductRepository {
 
 func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 	query := `
-		SELECT p.id, p.name, p.price, p.stock, COALESCE(p.category_id, 0), COALESCE(c.name, '') as category_name 
+		SELECT p.id, p.name, p.price, p.stock, COALESCE(p.category_id, 0), 
+		       COALESCE(c.name, '') as category_name, COALESCE(c.description, '') as category_description
 		FROM product p
 		LEFT JOIN category c ON p.category_id = c.id
 	`
@@ -29,10 +30,23 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 	products := make([]models.Product, 0)
 	for rows.Next() {
 		var p models.Product
-		err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.CategoryID, &p.CategoryName)
+		var catID int
+		var catName string
+		var catDesc string
+		err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &catID, &catName, &catDesc)
 		if err != nil {
 			return nil, err
 		}
+
+		p.CategoryID = catID
+		if catID != 0 {
+			p.Category = &models.Category{
+				ID:          catID,
+				Name:        catName,
+				Description: catDesc,
+			}
+		}
+
 		products = append(products, p)
 	}
 	return products, nil
@@ -47,19 +61,32 @@ func (repo *ProductRepository) Create(product *models.Product) error {
 // GetByID - ambil produk by ID
 func (repo *ProductRepository) GetByID(id int) (models.Product, error) {
 	query := `
-		SELECT p.id, p.name, p.price, p.stock, COALESCE(p.category_id, 0), COALESCE(c.name, '') as category_name 
+		SELECT p.id, p.name, p.price, p.stock, COALESCE(p.category_id, 0), 
+		       COALESCE(c.name, '') as category_name, COALESCE(c.description, '') as category_description
 		FROM product p
 		LEFT JOIN category c ON p.category_id = c.id
 		WHERE p.id = $1
 	`
 
 	var p models.Product
-	err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.CategoryID, &p.CategoryName)
+	var catID int
+	var catName string
+	var catDesc string
+	err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &catID, &catName, &catDesc)
 	if err == sql.ErrNoRows {
 		return models.Product{}, errors.New("product not found")
 	}
 	if err != nil {
 		return models.Product{}, err
+	}
+
+	p.CategoryID = catID
+	if catID != 0 {
+		p.Category = &models.Category{
+			ID:          catID,
+			Name:        catName,
+			Description: catDesc,
+		}
 	}
 
 	return p, nil
