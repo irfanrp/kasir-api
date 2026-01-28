@@ -295,7 +295,7 @@ func main() {
 	// Initialize Database
 	db, err := database.InitDB(config.DBConn)
 	if err != nil {
-		fmt.Printf("Gagal inisialisasi database: %v\n", err)
+		fmt.Printf("Failed to connect to database: %v\n", err)
 	}
 
 	// Setup routes
