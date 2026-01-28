@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  main.Categories:
+  models.Category:
     properties:
       description:
         type: string
@@ -29,37 +29,49 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengambil semua data kategori
+      description: Mengambil semua data kategori dari database
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            items:
+              $ref: '#/definitions/models.Category'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Get all categories
       tags:
       - categories
     post:
       consumes:
       - application/json
-      description: Menambahkan kategori baru
+      description: Menambahkan kategori baru ke database
       parameters:
       - description: Category Data
         in: body
         name: category
         required: true
         schema:
-          $ref: '#/definitions/main.Categories'
+          $ref: '#/definitions/models.Category'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Create new category
       tags:
       - categories
@@ -67,7 +79,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Menghapus kategori berdasarkan ID
+      description: Menghapus kategori dari database berdasarkan ID
       parameters:
       - description: Category ID
         in: path
@@ -80,15 +92,24 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Delete category
       tags:
       - categories
     get:
       consumes:
       - application/json
-      description: Mengambil kategori berdasarkan ID
+      description: Mengambil satu kategori berdasarkan ID
       parameters:
       - description: Category ID
         in: path
@@ -101,21 +122,22 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Not Found
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Invalid ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Get category by ID
       tags:
       - categories
     put:
       consumes:
       - application/json
-      description: Update kategori berdasarkan ID
+      description: Memperbarui data kategori berdasarkan ID
       parameters:
       - description: Category ID
         in: path
@@ -127,15 +149,22 @@ paths:
         name: category
         required: true
         schema:
-          $ref: '#/definitions/main.Categories'
+          $ref: '#/definitions/models.Category'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Update category
       tags:
       - categories
@@ -190,6 +219,36 @@ paths:
       tags:
       - products
   /api/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus produk dari database berdasarkan ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete product
+      tags:
+      - products
     get:
       consumes:
       - application/json
@@ -250,37 +309,6 @@ paths:
           schema:
             type: string
       summary: Update product
-      tags:
-      - products
-  /api/v2/products/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Menghapus produk dari database berdasarkan ID
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Invalid ID
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Delete product
       tags:
       - products
   /health:

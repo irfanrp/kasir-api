@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/categories": {
             "get": {
-                "description": "Mengambil semua data kategori",
+                "description": "Mengambil semua data kategori dari database",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,14 +32,22 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Category"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
             },
             "post": {
-                "description": "Menambahkan kategori baru",
+                "description": "Menambahkan kategori baru ke database",
                 "consumes": [
                     "application/json"
                 ],
@@ -57,7 +65,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.Categories"
+                            "$ref": "#/definitions/models.Category"
                         }
                     }
                 ],
@@ -65,8 +73,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/models.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -74,7 +93,7 @@ const docTemplate = `{
         },
         "/api/categories/{id}": {
             "get": {
-                "description": "Mengambil kategori berdasarkan ID",
+                "description": "Mengambil satu kategori berdasarkan ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -98,23 +117,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/models.Category"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "400": {
+                        "description": "Invalid ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
             },
             "put": {
-                "description": "Update kategori berdasarkan ID",
+                "description": "Memperbarui data kategori berdasarkan ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -139,7 +160,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.Categories"
+                            "$ref": "#/definitions/models.Category"
                         }
                     }
                 ],
@@ -147,14 +168,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/models.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "Menghapus kategori berdasarkan ID",
+                "description": "Menghapus kategori dari database berdasarkan ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -179,7 +211,21 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -354,9 +400,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/v2/products/{id}": {
+            },
             "delete": {
                 "description": "Menghapus produk dari database berdasarkan ID",
                 "consumes": [
@@ -429,7 +473,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "main.Categories": {
+        "models.Category": {
             "type": "object",
             "properties": {
                 "description": {
