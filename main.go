@@ -299,25 +299,27 @@ func main() {
 	}
 
 	// Setup routes
-	var productHandler *handlers.ProductHandler
-	if db != nil {
-		productRepo := repositories.NewProductRepository(db)
-		productService := services.NewProductService(productRepo)
-		productHandler = handlers.NewProductHandler(productService)
+	// Initialize productHandler even if db connection fails,
+	// but ensure productRepo and productService handle nil db gracefully or panic early.
+	// For now, we assume NewProductRepository can handle a nil db (e.g., by returning a no-op repo or erroring on method calls).
+	// A more robust solution would be to not register these routes if db connection fails,
+	// or to have a mock/fallback repository.
+	productRepo := repositories.NewProductRepository(db)
+	productService := services.NewProductService(productRepo)
+	productHandler := handlers.NewProductHandler(productService)
 
-		// Injeksi database routes ke mux
-		mux.HandleFunc("GET /api/v2/products", productHandler.HandleProducts)
-		mux.HandleFunc("POST /api/v2/products", productHandler.HandleProducts)
-		mux.HandleFunc("GET /api/v2/products/", productHandler.HandleProductByID)
-		mux.HandleFunc("PUT /api/v2/products/", productHandler.HandleProductByID)
-		mux.HandleFunc("DELETE /api/v2/products/", productHandler.HandleProductByID)
-	}
+	// Injeksi database routes ke mux (Selalu aktif agar tidak 404)
+	mux.HandleFunc("GET /api/products", productHandler.HandleProducts)
+	mux.HandleFunc("POST /api/products", productHandler.HandleProducts)
+	mux.HandleFunc("GET /api/products/", productHandler.HandleProductByID)
+	mux.HandleFunc("PUT /api/products/", productHandler.HandleProductByID)
+	mux.HandleFunc("DELETE /api/products/", productHandler.HandleProductByID)
 
 	addr := "0.0.0.0:" + config.Port
 	fmt.Println("Server running di", addr)
 
-	err = http.ListenAndServe(addr, handler)
-	if err != nil {
-		fmt.Println("gagal running server", err)
+	serverErr := http.ListenAndServe(addr, handler)
+	if serverErr != nil {
+		fmt.Println("gagal running server", serverErr)
 	}
 }

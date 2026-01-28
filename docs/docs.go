@@ -187,7 +187,7 @@ const docTemplate = `{
         },
         "/api/products": {
             "get": {
-                "description": "Mengambil semua data produk",
+                "description": "Mengambil semua data produk dari database",
                 "consumes": [
                     "application/json"
                 ],
@@ -202,14 +202,22 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Product"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
             },
             "post": {
-                "description": "Menambahkan produk baru",
+                "description": "Menambahkan produk baru ke database",
                 "consumes": [
                     "application/json"
                 ],
@@ -227,7 +235,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.Product"
+                            "$ref": "#/definitions/models.Product"
                         }
                     }
                 ],
@@ -235,8 +243,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/models.Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -244,7 +263,7 @@ const docTemplate = `{
         },
         "/api/products/{id}": {
             "get": {
-                "description": "Mengambil produk berdasarkan ID",
+                "description": "Mengambil satu produk berdasarkan ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -268,23 +287,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/models.Product"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "400": {
+                        "description": "Invalid ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
             },
             "put": {
-                "description": "Update produk berdasarkan ID",
+                "description": "Memperbarui data produk berdasarkan ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -309,7 +330,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.Product"
+                            "$ref": "#/definitions/models.Product"
                         }
                     }
                 ],
@@ -317,14 +338,27 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/models.Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/v2/products/{id}": {
             "delete": {
-                "description": "Menghapus produk berdasarkan ID",
+                "description": "Menghapus produk dari database berdasarkan ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -349,16 +383,21 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -404,7 +443,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.Product": {
+        "models.Product": {
             "type": "object",
             "properties": {
                 "id:": {

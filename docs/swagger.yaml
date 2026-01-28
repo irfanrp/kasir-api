@@ -9,7 +9,7 @@ definitions:
       name:
         type: string
     type: object
-  main.Product:
+  models.Product:
     properties:
       'id:':
         type: integer
@@ -143,72 +143,57 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengambil semua data produk
+      description: Mengambil semua data produk dari database
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Get all products
       tags:
       - products
     post:
       consumes:
       - application/json
-      description: Menambahkan produk baru
+      description: Menambahkan produk baru ke database
       parameters:
       - description: Product Data
         in: body
         name: product
         required: true
         schema:
-          $ref: '#/definitions/main.Product'
+          $ref: '#/definitions/models.Product'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/models.Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Create new product
       tags:
       - products
   /api/products/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Menghapus produk berdasarkan ID
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete product
-      tags:
-      - products
     get:
       consumes:
       - application/json
-      description: Mengambil produk berdasarkan ID
+      description: Mengambil satu produk berdasarkan ID
       parameters:
       - description: Product ID
         in: path
@@ -221,21 +206,22 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Not Found
+            $ref: '#/definitions/models.Product'
+        "400":
+          description: Invalid ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Get product by ID
       tags:
       - products
     put:
       consumes:
       - application/json
-      description: Update produk berdasarkan ID
+      description: Memperbarui data produk berdasarkan ID
       parameters:
       - description: Product ID
         in: path
@@ -247,16 +233,54 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/main.Product'
+          $ref: '#/definitions/models.Product'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/models.Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
       summary: Update product
+      tags:
+      - products
+  /api/v2/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus produk dari database berdasarkan ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete product
       tags:
       - products
   /health:
