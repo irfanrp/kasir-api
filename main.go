@@ -10,11 +10,14 @@ import (
 	"github.com/spf13/viper"
 
 	"kasir-api-irfan/database"
+	"kasir-api-irfan/docs"
 	_ "kasir-api-irfan/docs"
 	"kasir-api-irfan/handlers"
 	"kasir-api-irfan/repositories"
 	"kasir-api-irfan/services"
+	"log"
 
+	"github.com/MarceloPetrucio/go-scalar-api-reference"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -91,14 +94,32 @@ func main() {
 	// swagger documentation
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
+	// scalar documentation
+	mux.HandleFunc("/scalar", func(w http.ResponseWriter, r *http.Request) {
+		html, err := scalar.ApiReferenceHTML(&scalar.Options{
+			SpecContent: docs.SwaggerInfo.ReadDoc(),
+			CustomOptions: scalar.CustomOptions{
+				PageTitle: "Kasir API Reference",
+			},
+		})
+		if err != nil {
+			log.Printf("Error generating Scalar HTML: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(html))
+	})
+
 	// Apply CORS middleware to all routes
 	handler := corsMiddleware(mux)
 
 	// Initialize Database
 	db, err := database.InitDB(config.DBConn)
 	if err != nil {
-		fmt.Printf("Failed to connect to database: %v\n", err)
+		log.Fatalf("CRITICAL: Failed to connect to database: %v", err)
 	}
+	log.Println("Database connection verified")
 
 	// Setup routes
 	// Initialize productHandler even if db connection fails,
