@@ -142,11 +142,19 @@ func main() {
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
+	// Transaction
+	transactionRepo := repositories.NewTransactionRepository(db)
+	transactionService := services.NewTransactionService(transactionRepo)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
+
 	mux.HandleFunc("GET /api/categories", categoryHandler.HandleCategories)
 	mux.HandleFunc("POST /api/categories", categoryHandler.HandleCategories)
 	mux.HandleFunc("GET /api/categories/", categoryHandler.HandleCategoryByID)
 	mux.HandleFunc("PUT /api/categories/", categoryHandler.HandleCategoryByID)
 	mux.HandleFunc("DELETE /api/categories/", categoryHandler.HandleCategoryByID)
+
+	// Transaction routes
+	mux.HandleFunc("POST /api/checkout", transactionHandler.HandleCheckout)
 
 	addr := "0.0.0.0:" + config.Port
 	fmt.Println("Server up and running in", addr)
