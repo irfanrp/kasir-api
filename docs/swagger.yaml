@@ -38,6 +38,22 @@ definitions:
       stock:
         type: integer
     type: object
+  models.ProductInfo:
+    properties:
+      nama:
+        type: string
+      qty_terjual:
+        type: integer
+    type: object
+  models.SalesSummary:
+    properties:
+      produk_terlaris:
+        $ref: '#/definitions/models.ProductInfo'
+      total_revenue:
+        type: integer
+      total_transaksi:
+        type: integer
+    type: object
   models.Transaction:
     properties:
       created_at:
@@ -387,6 +403,35 @@ paths:
       summary: Update product
       tags:
       - products
+  /api/report:
+    get:
+      consumes:
+      - application/json
+      description: 'Mendapatkan laporan penjualan berdasarkan periode (default: hari
+        ini)'
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SalesSummary'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get sales report
+      tags:
+      - reports
   /health:
     get:
       consumes:

@@ -493,6 +493,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/report": {
+            "get": {
+                "description": "Mendapatkan laporan penjualan berdasarkan periode (default: hari ini)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reports"
+                ],
+                "summary": "Get sales report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SalesSummary"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Health check",
@@ -574,6 +617,31 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "stock": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ProductInfo": {
+            "type": "object",
+            "properties": {
+                "nama": {
+                    "type": "string"
+                },
+                "qty_terjual": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.SalesSummary": {
+            "type": "object",
+            "properties": {
+                "produk_terlaris": {
+                    "$ref": "#/definitions/models.ProductInfo"
+                },
+                "total_revenue": {
+                    "type": "integer"
+                },
+                "total_transaksi": {
                     "type": "integer"
                 }
             }

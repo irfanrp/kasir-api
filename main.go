@@ -147,6 +147,11 @@ func main() {
 	transactionService := services.NewTransactionService(transactionRepo)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
+	// Report
+	reportRepo := repositories.NewReportRepository(db)
+	reportService := services.NewReportService(reportRepo)
+	reportHandler := handlers.NewReportHandler(reportService)
+
 	mux.HandleFunc("GET /api/categories", categoryHandler.HandleCategories)
 	mux.HandleFunc("POST /api/categories", categoryHandler.HandleCategories)
 	mux.HandleFunc("GET /api/categories/", categoryHandler.HandleCategoryByID)
@@ -155,6 +160,9 @@ func main() {
 
 	// Transaction routes
 	mux.HandleFunc("POST /api/checkout", transactionHandler.HandleCheckout)
+
+	// Report routes
+	mux.HandleFunc("GET /api/report", reportHandler.GetSalesReport)
 
 	addr := "0.0.0.0:" + config.Port
 	fmt.Println("Server up and running in", addr)
